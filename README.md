@@ -3,23 +3,23 @@ This tool helps automatically insert plots into Keynote slides.
 It was created to easily insert the kinematics of jets and leptons at each step in ttbar in dilepton channel analysis.
 Plots will be arranged in a 2 x 3 layout.
 ![Run the code](./jaaaadong.gif)
----
+
 # **How it works**
 1) Copy the template file.
 2) Open the copied file using AppleScript.
 3) Create a new page with a specifically customized layout.
 4) Find files and set up the size & position.
----
+
 # **Note**
 - The slide will be filled with plots starting from the second page. (The first page is used for copying pages and should be removed after running)
 - All plots are not arranged in the correct order. You need to modify their placement.
 - You must write the title and content for each page.
----
+
 # **Requirement**
 - Keynote & Mac OS to use 'Apple script'
 - Python
 - Template file
----
+
 # **Description**
 ## Configuration section
 ```python
