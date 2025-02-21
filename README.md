@@ -1,7 +1,7 @@
 # **SildeGenerator v1.0**
-This tool helps automatically insert plots into Keynote slides. 
-It was created to easily insert the kinematics of jets and leptons at each step in ttbar in dilepton channel analysis. 
-Plots will be arranged in a 2 x 3 layout. 
+- This tool helps automatically insert plots into Keynote slides. 
+- It was created to easily insert the kinematics of jets and leptons at each step in ttbar in dilepton channel analysis. 
+- Plots will be arranged in a 2 x 3 layout. 
 ![Run the code](./jaaaadong.gif)
 
 # **How it works**
