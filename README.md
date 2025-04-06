@@ -7,7 +7,7 @@
 # **How it works**
 1) Copy the template file.
 2) Open the copied file using AppleScript.
-3) Create a new page with a specifically customized layout.
+3) Duplicate 1st slide.
 4) Find files and set up the size & position.
 
 # **Note**
@@ -23,18 +23,34 @@
 # **Description**
 ## Configuration section
 ```python
-template_file = "./KinematicTemplate.key" # This file serves as a template with a predefined slide layout
-output_file = "../../../Kinematics.key"   # output file
-
+#################
+# Configuration #
+#################
+### template & output file ###
+template_file = "./KinematicTemplate.key"
+output_file = "../../../Kinematics.key"
+### the path where the plot files are located & what is the version ###
+version = "SelLep"
+sample = "TTbar_Signal"
 base_dir = "/Users/gcho/Desktop/"
-plot_dir = base_dir + "UL2016PreVFP/MuMu/" # A directory that contains files (plots) to be inserted into your slide
+plot_dir = base_dir + version +"/Dataset/UL2016PreVFP/MuMu/" + sample + "/"
 
-step = ["step0", "step1", "step2", "step3", "step4", "step5", "step6"]  # Analysis steps
-kinematics = ["pT", "eta", "phi"]                                       # kinematics
+### event selection step ###
+step = [
+    #"initial", 
+    "step0", "step1", 
+    #"step2", "step3", "step4", "step5", "step6"
+    ]
+### kinematic variables ###
+kinematics = ["pt", "eta", "phi",
+              #"iso"
+              ]
+### objects ###
 objects = [
-    ["Jet1", "Jet2"],                                                   # object what you insert
+    #["AllSelMu", "AllSelVetoEle"],
     ["Lep1", "Lep2"],
-]
+    #["Jet1", "Jet2"],
+    ]
 ```
 ## Plots size and position
 ```python
@@ -46,11 +62,11 @@ size = (323, 313)                              # (Width, Height)
 ```
 ## File name format
 ```python
-######################################################
-# file name format: h_<object><kinematic>_<step>.pdf #
-# example: h_Jet1pt_0.pdf                            #
-######################################################
-file_name = f"h_{obj}{kin.lower()}_{step_num}.pdf"
+#######################################################
+# file name format: h_<object>_<kinematic>_<step>.pdf #
+# example: h_Jet1_pt_0.pdf                            #
+#######################################################
+file_name = f"h_{obj}_{kin.lower()}_{step_num}.pdf"
 file_path = os.path.join(plot_dir, st, kin, file_name) ### plot file path ###
 ```
 - **All plots you want to insert must be in the same format**
