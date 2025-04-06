@@ -5,18 +5,31 @@ import shutil
 #################
 # Configuration #
 #################
+### template & output file ###
 template_file = "./KinematicTemplate.key"
 output_file = "../../../Kinematics.key"
-
+### the path where the plot files are located & what is the version ###
+version = "SelLep"
+sample = "TTbar_Signal"
 base_dir = "/Users/gcho/Desktop/"
-plot_dir = base_dir + "UL2016PreVFP/MuMu/"
+plot_dir = base_dir + version +"/Dataset/UL2016PreVFP/MuMu/" + sample + "/"
 
-step = ["step0", "step1", "step2", "step3", "step4", "step5", "step6"]
-kinematics = ["pT", "eta", "phi"]
+### event selection step ###
+step = [
+    #"initial", 
+    "step0", "step1", 
+    #"step2", "step3", "step4", "step5", "step6"
+    ]
+### kinematic variables ###
+kinematics = ["pt", "eta", "phi",
+              #"iso"
+              ]
+### objects ###
 objects = [
-    ["Jet1", "Jet2"],
+    #["AllSelMu", "AllSelVetoEle"],
     ["Lep1", "Lep2"],
-]
+    #["Jet1", "Jet2"],
+    ]
 
 def prepare_keynote(template_file, output_file):
     shutil.copy(template_file, output_file)
@@ -26,10 +39,13 @@ def insert_pdfs_into_slide(output_file, plot_dir):
     ##################################################
     # 1. set up the plot size and positions as 2 * 3 #
     ##################################################
-    size = (323, 313)  # (Width, Height)
+    size = (323, 313)  # (Width, Height) for 2*3
+    #size = (270, 262)  # (Width, Height) for 2*4
     positions = [
-        [(44, 166), (363, 166), (681, 166)],  # Jet1 or Lep1
-        [(44, 452), (363, 452), (681, 452)]   # Jet2 or Lep2
+        [(49, 166), (363, 166), (681, 166)],  # 2*3 (pt, eta, phi)
+        [(49, 452), (363, 452), (681, 452)]   # 2*3 (pt, eta, phi)
+        #[(49, 214), (295, 214), (538, 214), (780, 214)],  # 2*4 (pt, eta, phi, iso)
+        #[(49, 477), (295, 477), (538, 477), (780, 477)]   # 2*4 (pt, eta, phi, iso)
     ]
     ##################################################################
     # 2. set up AppleScript to control Keynote: open the output file #
@@ -44,7 +60,10 @@ def insert_pdfs_into_slide(output_file, plot_dir):
     # Analysis step loop #
     ######################
     for st in step:
-        step_num = st.replace("step", "")
+        if st == "initial":
+            step_num = ""
+        else:
+            step_num = st.replace("step", "")
         ###############
         # Object loop #
         ###############
@@ -54,16 +73,19 @@ def insert_pdfs_into_slide(output_file, plot_dir):
             ##############################################
             apple_script += '''
             tell theDoc
-            set ObjectSlide to make new slide at the end of theDoc with properties {base slide:(first master slide whose name is "Kinematics")}
-            tell ObjectSlide
+                copy slide 1 to end of slides
+                tell the last slide
             '''
             for row, obj in enumerate(obj):
                 for col, kin in enumerate(kinematics):
                     ######################################################
-                    # file name format: h_<object><kinematic>_<step>.pdf #
-                    # example: h_Jet1pt_0.pdf                            #
+                    # file name format: h_<object>_<kinematic>_<step>.pdf #
+                    # example: h_Jet1_pt_0.pdf                            #
                     ######################################################
-                    file_name = f"h_{obj}{kin.lower()}_{step_num}.pdf"
+                    if st == "initial":
+                        file_name = f"h_{obj}_{kin.lower()}.pdf"
+                    else:
+                        file_name = f"h_{obj}_{kin.lower()}_{step_num}.pdf"
                     file_path = os.path.join(plot_dir, st, kin, file_name) ### plot file path ###
                     # print(file_path) # for debugging
                     if os.path.exists(file_path):
