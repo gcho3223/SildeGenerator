@@ -449,16 +449,25 @@ def scan_and_match_files(base_dir: str,
     # Check if there are consecutive variables (e.g., {obj}{kin})
     # If so, we need to handle boundary resolution using allowed values
     consecutive_vars = []
-    for i, var in enumerate(template_variables):
-        if i < len(template_variables) - 1:
-            # Check if this variable is followed immediately by another variable
-            var_pos = filename_template.find(f"{{{var}}}")
-            if var_pos != -1:
-                after_pos = var_pos + len(f"{{{var}}}")
-                if after_pos < len(filename_template) and filename_template[after_pos] == '{':
-                    # This variable is followed by another variable
-                    next_var = template_variables[i+1]
-                    consecutive_vars.append((var, next_var))
+    # Find all variable positions in the template to determine actual order
+    var_pattern = r'\{([^}]+)\}'
+    var_matches = list(re.finditer(var_pattern, filename_template))
+    # Filter out {format} variables
+    var_matches = [m for m in var_matches if m.group(1) != "format"]
+    
+    # Check each variable to see if it's followed immediately by another variable
+    for i, match in enumerate(var_matches):
+        if i < len(var_matches) - 1:
+            var1 = match.group(1)
+            var1_end = match.end()
+            # Check if next variable starts immediately after this one
+            next_match = var_matches[i + 1]
+            if next_match.start() == var1_end:
+                # They are consecutive
+                var2 = next_match.group(1)
+                # Only add if not already added (avoid duplicates)
+                if (var1, var2) not in consecutive_vars:
+                    consecutive_vars.append((var1, var2))
     
     # Match files against template
     matched_files = []  # List of (file_path, parsed_vars, status)
@@ -516,24 +525,35 @@ def scan_and_match_files(base_dir: str,
                         var1_allowed = variable_combinations.get(var1, [])
                         var2_allowed = variable_combinations.get(var2, [])
                         
+                        if log_callback:
+                            log_callback(f"  Resolving consecutive variables {var1}+{var2} from '{combined_str}'")
+                            log_callback(f"    {var1} allowed values: {var1_allowed}")
+                            log_callback(f"    {var2} allowed values: {var2_allowed}")
+                        
                         # Try each combination of allowed values
                         found_split = False
                         for v1 in var1_allowed:
                             v1_str = str(v1).strip()
-                            if combined_str.startswith(v1_str):
+                            # Case-insensitive comparison for startswith
+                            if combined_str.lower().startswith(v1_str.lower()):
                                 remaining = combined_str[len(v1_str):]
+                                # Also try case-insensitive remaining
+                                remaining_lower = combined_str.lower()[len(v1_str.lower()):]
                                 for v2 in var2_allowed:
                                     v2_str = str(v2).strip()
-                                    # Check if remaining exactly matches v2
-                                    if remaining == v2_str:
-                                        # Found a valid split
+                                    # Check if remaining exactly matches v2 (case-insensitive)
+                                    if remaining.lower() == v2_str.lower():
+                                        # Found a valid split - use original case from allowed values
                                         parsed_vars[var1] = v1
                                         parsed_vars[var2] = v2
                                         found_split = True
                                         resolved = True
+                                        if log_callback:
+                                            log_callback(f"    ✓ Found split: {var1}={v1}, {var2}={v2}")
                                         break
                                     # Also check if remaining starts with v2 and the next char is a separator
-                                    elif remaining.startswith(v2_str):
+                                    elif remaining_lower.startswith(v2_str.lower()):
+                                        # Use length of v2_str (case-insensitive match, but length is same)
                                         next_char_pos = len(v2_str)
                                         if next_char_pos < len(remaining):
                                             next_char = remaining[next_char_pos]
@@ -543,6 +563,8 @@ def scan_and_match_files(base_dir: str,
                                                 parsed_vars[var2] = v2
                                                 found_split = True
                                                 resolved = True
+                                                if log_callback:
+                                                    log_callback(f"    ✓ Found split: {var1}={v1}, {var2}={v2}")
                                                 break
                                         else:
                                             # End of string
@@ -550,9 +572,14 @@ def scan_and_match_files(base_dir: str,
                                             parsed_vars[var2] = v2
                                             found_split = True
                                             resolved = True
+                                            if log_callback:
+                                                log_callback(f"    ✓ Found split: {var1}={v1}, {var2}={v2}")
                                             break
                                 if found_split:
                                     break
+                        
+                        if not found_split and log_callback:
+                            log_callback(f"    ✗ Could not split '{combined_str}' into {var1} and {var2}")
                         
                         if not found_split:
                             resolved = False
