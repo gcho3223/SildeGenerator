@@ -1,8 +1,8 @@
 # Slide Maker
-**Automatically inserting lots of plots on the Keynote app**
+**Automatically inserting multiple plots in the Keynote app**
 
-## Requirement
-- MacOS
+## Requirements
+- macOS
 - Keynote
 
 ## Demo
@@ -13,10 +13,11 @@ https://github.com/user-attachments/assets/3ed2eab0-cf2c-40aa-bdcb-f543aa0ecd3c
 https://github.com/user-attachments/assets/97ef1e8a-1ce8-4166-ae9d-89dfe4d71e24
 
 ### Preset
-You can save and use your settings
-
+You can save and reuse your custom settings.
 https://github.com/user-attachments/assets/b74e4ffc-07ce-4053-b8d0-46a5ca938bae
 
 
 ## Installation
+Download the DMG file from the release page or from the link below
 [Download](https://github.com/gcho3223/SildeGenerator/releases/tag/v2.0)
+
