@@ -2,7 +2,7 @@
 **Automatically inserting multiple plots in the Keynote app**
 
 ## Main Features
-- Automatic incerting plots with templated filename & directory structure
+- Automatically insert plots using predefined filename and directory structure
 - Save and load presets
 - Customizing arrangement, side, and positions of plots
 
@@ -27,6 +27,7 @@ https://github.com/user-attachments/assets/b74e4ffc-07ce-4053-b8d0-46a5ca938bae
 Download the DMG file from the release page or from the link below
 
 [Download](https://github.com/gcho3223/SildeGenerator/releases/tag/v2.0)
+
 
 
 
