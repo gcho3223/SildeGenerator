@@ -155,7 +155,7 @@ class KeynoteSlideGeneratorGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         # Window settings
-        self.setWindowTitle("Silde Maker for Keynote v2.1")
+        self.setWindowTitle("Silde Maker for Keynote v2.1.1")
         self.setGeometry(100, 100, 750, 900)
         self.setMinimumSize(750, 900)
         

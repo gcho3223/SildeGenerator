@@ -1,5 +1,5 @@
 # About Slide Maker for Keynote  
-version 2.1  
+version 2.1.1  
 
 # Bug Report  
 카카오톡으로 문의(스크린샷 + status 복붙해서 보내주면 좋음)  
@@ -7,6 +7,10 @@ version 2.1
 ### Created by Guk Cho  
 
 # Log  
+### version 2.1.1  
+- loop-defiend mode minor update  
+
+
 ### version 2.1  
 - 기존 user-defined 모드 이름 변경 -> loop-defined  
 - 보다 편한 user-defined 모드 구현  
