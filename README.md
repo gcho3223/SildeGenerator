@@ -24,6 +24,7 @@
 Download the DMG file from the release page or from the link below
 
 
+[Download](https://github.com/gcho3223/SildeGenerator/releases/tag/v2.1.1)
 
 
 
