@@ -2427,7 +2427,8 @@ class KeynoteSlideGeneratorGUI(QMainWindow):
                 # Update axis dropdowns if DRC plot is enabled
                 if hasattr(self, 'loopDefined_drc_plot_check') and self.loopDefined_drc_plot_check.isChecked():
                     self._update_loopDefined_axis_dropdowns()
-                    # Update preview
+                # Always update preview when Correct is clicked (includes Ambiguous files)
+                if hasattr(self, '_update_loopDefined_drc_preview'):
                     self._update_loopDefined_drc_preview()
                 dialog.accept()
             
