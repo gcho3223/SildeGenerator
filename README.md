@@ -1,6 +1,6 @@
 # Slide Maker
 **Automatically inserting multiple plots in the Keynote app**
-22
+
 
 ## Main Features
 - Automatically insert plots using predefined filename and directory structure
@@ -11,12 +11,8 @@
 - macOS
 - Keynote
 
-## Demo
-### Example 1: 
-
-
-
-### Preset
+## Update log
+- add overlay plotting function on DRC mode
 
 
 

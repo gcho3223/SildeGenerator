@@ -102,11 +102,24 @@ def get_file_path_drc(base_dir, program, channel, energy):
     Args:
         base_dir (str): Base directory for plots
         program (str): DRC program name (e.g., "proton_Rot")
-        channel (str): Channel name (e.g., "S_LCATTcor")
+        channel (str): Channel name (e.g., "S_LCATTcor", "C_S_overlay_LCATTcor")
         energy (str): Energy name (e.g., "energy20_run20")
     Returns:
         tuple: (file_path, file_name)
     """
+    # S/C overlay channel: directory is "C_S_overlay" and the file name
+    # convention is "eDep_C_S_<s_mode>_<energy>.pdf".
+    if channel.startswith("C_S_overlay"):
+        # "C_S_overlay_LCATTcor" -> s_mode = "LCATTcor"
+        # "C_S_overlay"          -> s_mode = "" (handled but unlikely)
+        s_mode = channel[len("C_S_overlay"):].lstrip("_")
+        if s_mode:
+            file_name = f"eDep_C_S_{s_mode}_{energy}.pdf"
+        else:
+            file_name = f"eDep_C_S_{energy}.pdf"
+        file_path = os.path.join(base_dir, program, "C_S_overlay", file_name)
+        return file_path, file_name
+
     file_name = f"eDep_{channel}_{energy}.pdf"
     file_path = os.path.join(base_dir, program, channel, file_name)
     return file_path, file_name

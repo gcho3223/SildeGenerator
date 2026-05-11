@@ -64,9 +64,9 @@ def create_drc_options_ui(parent):
 def create_drc_channels_ui(parent):
     """
     Create DRC channel and energy selection UI
-    Returns: (drc_channels_widget, c_check, s_combo, drcor_combo, energy_checks, 
-              low_energy_check, energy_checkboxes_layout, resol_with_noise_check, 
-              resol_without_noise_check, lin_check)
+    Returns: (drc_channels_widget, c_check, s_combo, sc_overlay_check, drcor_combo,
+              energy_checks, low_energy_check, energy_checkboxes_layout,
+              resol_with_noise_check, resol_without_noise_check, lin_check)
     """
     drc_channels_widget = QWidget()
     drc_channels_layout = QVBoxLayout()
@@ -78,30 +78,40 @@ def create_drc_channels_ui(parent):
     channel_label_layout.addStretch()
     drc_channels_layout.addLayout(channel_label_layout)
     
-    # Channel selection (C, S, DRcor)
+    # Channel selection (S+C overlay, C, S, DRcor)
     channel_options_layout = QHBoxLayout()
-    
+
+    # S+C overlay checkbox (independent of S dropdown; pulls plots from
+    # the 'C_S_overlay' directory)
+    sc_overlay_check = QCheckBox("S+C")
+    sc_overlay_check.setToolTip(
+        "Insert S+C overlay plots from the 'C_S_overlay' directory.\n"
+        "Uses the energy order from the C tab. If S is 'None', defaults to LCATTcor."
+    )
+    channel_options_layout.addWidget(sc_overlay_check)
+    channel_options_layout.addSpacing(1)
+
     # C checkbox
     c_check = QCheckBox("C")
     c_check.setChecked(True)
     channel_options_layout.addWidget(c_check)
-    channel_options_layout.addSpacing(20)
+    channel_options_layout.addSpacing(1)
     
     # S dropdown
     channel_options_layout.addWidget(QLabel("S:"))
     s_combo = QComboBox()
     s_combo.addItems(["None", "S", "ATTcor", "LCcor", "LC+ATTcor"])
     s_combo.setCurrentText("LC+ATTcor")
-    s_combo.setMinimumWidth(100)
+    s_combo.setMinimumWidth(70)
     channel_options_layout.addWidget(s_combo)
-    channel_options_layout.addSpacing(20)
+    channel_options_layout.addSpacing(1)
     
     # DRcor dropdown
     channel_options_layout.addWidget(QLabel("DRcor:"))
     drcor_combo = QComboBox()
     drcor_combo.addItems(["None", "DRcor", "ATTcor", "LCcor", "LC+ATTcor"])
     drcor_combo.setCurrentText("LC+ATTcor")
-    drcor_combo.setMinimumWidth(100)
+    drcor_combo.setMinimumWidth(70)
     channel_options_layout.addWidget(drcor_combo)
     
     channel_options_layout.addStretch()
@@ -170,9 +180,9 @@ def create_drc_channels_ui(parent):
 
     drc_channels_widget.setLayout(drc_channels_layout)
     
-    return (drc_channels_widget, c_check, s_combo, drcor_combo, energy_checks, 
-            low_energy_check, energy_checkboxes_layout, resol_with_noise_check, 
-            resol_without_noise_check, lin_check)
+    return (drc_channels_widget, c_check, s_combo, sc_overlay_check, drcor_combo,
+            energy_checks, low_energy_check, energy_checkboxes_layout,
+            resol_with_noise_check, resol_without_noise_check, lin_check)
 
 
 def create_drc_pid_ui():
@@ -397,6 +407,25 @@ def run_drc_generation(thread_instance):
         
         # Construct channels list
         channels = []
+        # Add S+C overlay channel: plots in <base>/<program>/C_S_overlay/.
+        # Independent of the S dropdown: when S is "None" we fall back to "LCATTcor"
+        # (the canonical overlay variant), otherwise we reuse the S selection so the
+        # user can pick a different overlay variant (e.g. ATTcor) when those files
+        # are present. File name pattern is "eDep_C_S_<s_mode>_<energy>.pdf".
+        # The channel name starts with "C_" so the existing energies-dict lookup
+        # (which keys on the first underscore-separated token) picks up the C-tab
+        # energy ordering automatically.
+        sc_overlay_checked = getattr(thread_instance, "sc_overlay_checked", False)
+        if sc_overlay_checked:
+            if thread_instance.s_selected and thread_instance.s_selected != "None":
+                s_overlay_mode = thread_instance.s_selected.replace("LC+ATTcor", "LCATTcor")
+            else:
+                s_overlay_mode = "LCATTcor"
+                thread_instance.log_signal.emit(
+                    "S is 'None' but S+C overlay is checked; defaulting overlay variant to LCATTcor."
+                )
+            channels.append(f"C_S_overlay_{s_overlay_mode}")
+            
         if thread_instance.c_checked:
             channels.append("C")
         
@@ -409,7 +438,7 @@ def run_drc_generation(thread_instance):
         if thread_instance.drcor_selected != "None":
             drcor_channel_name = thread_instance.drcor_selected.replace("LC+ATTcor", "LCATTcor")
             channels.append(f"DRcor_{drcor_channel_name}")
-        
+
         # Convert selected energies from GUI format (e.g., "20GeV") to internal format (e.g., "energy20_run20")
         # Keep "Empty" to preserve positions
         # The order is already set by the preview grid (after drag and drop)
@@ -458,6 +487,7 @@ def run_drc_generation(thread_instance):
         thread_instance.log_signal.emit(f"C checked: {thread_instance.c_checked}")
         thread_instance.log_signal.emit(f"S selected: {thread_instance.s_selected}")
         thread_instance.log_signal.emit(f"DRcor selected: {thread_instance.drcor_selected}")
+        thread_instance.log_signal.emit(f"S+C overlay: {sc_overlay_checked}")
         thread_instance.log_signal.emit(f"Channels: {channels}")
         if energies_dict:
             for channel_name, energies_list in energies_dict.items():

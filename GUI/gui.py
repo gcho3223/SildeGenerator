@@ -59,7 +59,8 @@ class GeneratorThread(QThread):
                  resol_with_noise=False, resol_without_noise=False, linearity=False, file_format="pdf",
                  user_settings=None, loopDefined_path_template="", loopDefined_filename_template="", loopDefined_variables=None,
                  loopDefined_row_values=None, loopDefined_column_values=None, loopDefined_scan_mode=False,
-                 dragdrop_file_paths=None, dragdrop_arrangement=None, dragdrop_slide_count=1):
+                 dragdrop_file_paths=None, dragdrop_arrangement=None, dragdrop_slide_count=1,
+                 sc_overlay_checked=False):
         super().__init__()
         self.mode = mode
         self.systematic = systematic
@@ -74,6 +75,7 @@ class GeneratorThread(QThread):
         self.c_checked = c_checked
         self.s_selected = s_selected if s_selected is not None else ""
         self.drcor_selected = drcor_selected if drcor_selected is not None else ""
+        self.sc_overlay_checked = sc_overlay_checked
         self.selected_energies = selected_energies if selected_energies is not None else []
         self.resol_with_noise = resol_with_noise
         self.resol_without_noise = resol_without_noise
@@ -155,7 +157,7 @@ class KeynoteSlideGeneratorGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         # Window settings
-        self.setWindowTitle("Silde Maker for Keynote v2.1.1")
+        self.setWindowTitle("Silde Maker for Keynote v2.2")
         self.setGeometry(100, 100, 750, 900)
         self.setMinimumSize(750, 900)
         
@@ -352,10 +354,10 @@ class KeynoteSlideGeneratorGUI(QMainWindow):
         object_layout.addWidget(self.cpv_objects_widget)
         
         # DRC Channels & Energy
-        (self.drc_channels_widget, self.c_check, self.s_combo, self.drcor_combo, 
-         drc_energy_checks, self.low_energy_check, self.energy_checkboxes_layout,
-         self.resol_with_noise_check, self.resol_without_noise_check, 
-         self.lin_check) = create_drc_channels_ui(self)
+        (self.drc_channels_widget, self.c_check, self.s_combo, self.sc_overlay_check,
+         self.drcor_combo, drc_energy_checks, self.low_energy_check,
+         self.energy_checkboxes_layout, self.resol_with_noise_check,
+         self.resol_without_noise_check, self.lin_check) = create_drc_channels_ui(self)
         self.energy_checks.update(drc_energy_checks)
         object_layout.addWidget(self.drc_channels_widget)
         self.drc_channels_widget.setVisible(False)
@@ -1745,6 +1747,7 @@ class KeynoteSlideGeneratorGUI(QMainWindow):
             c_checked = self.c_check.isChecked()
             s_selected = self.s_combo.currentText()
             drcor_selected = self.drcor_combo.currentText()
+            sc_overlay_checked = self.sc_overlay_check.isChecked() if hasattr(self, 'sc_overlay_check') else False
             
             # Get selected energy points from preview grid (DRC) or checkboxes (CPV/Loop-defined)
             if mode == "drc":
@@ -2177,7 +2180,8 @@ class KeynoteSlideGeneratorGUI(QMainWindow):
                     selected_objects, selected_steps, observable_text, jobversion,
                     particle, case, c_checked, s_selected, drcor_selected, selected_energies,
                     resol_with_noise, resol_without_noise, linearity, file_format,
-                    self.user_settings  # Pass user settings
+                    self.user_settings,  # Pass user settings
+                    sc_overlay_checked=sc_overlay_checked
                 )
             self.generator_thread.log_signal.connect(self.log)
             self.generator_thread.finished_signal.connect(self.on_generation_finished)

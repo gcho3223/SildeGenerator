@@ -7,6 +7,10 @@ version 2.1.1
 ### Created by Guk Cho  
 
 # Log  
+### version 2.2
+- DRC mode에서 S/C overlay plot 삽입 기능 추가
+
+
 ### version 2.1.1  
 - loop-defiend mode minor update  
 
