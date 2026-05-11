@@ -1,6 +1,6 @@
 # Slide Maker
 **Automatically inserting multiple plots in the Keynote app**
-22
+
 
 ## Main Features
 - Automatically insert plots using predefined filename and directory structure
