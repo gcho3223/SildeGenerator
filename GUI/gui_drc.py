@@ -207,9 +207,15 @@ def create_drc_pid_ui():
     return drc_pid_widget
 
 
+DRC_TAB_NAMES = ["S+C", "C", "S", "DRcor"]
+# Tab index -> energy-dict key used by the slide generator.
+# (Stable across UI label changes; matches the prefix logic in keynoteCtrl_drc.)
+DRC_TAB_KEYS = ["C_S_overlay", "C", "S", "DRcor"]
+
+
 def create_drc_preview_ui(parent):
     """
-    Create DRC energy preview UI with tabs (C, S, DRcor)
+    Create DRC energy preview UI with tabs (S+C, C, S, DRcor)
     Returns: (preview_group, energy_preview_cells, page_tabs, tab_grids, tab_cells)
     """
     from PyQt5.QtWidgets import QTabWidget, QWidget
@@ -217,7 +223,7 @@ def create_drc_preview_ui(parent):
     preview_group = QGroupBox("Preview")
     preview_layout = QVBoxLayout()
     
-    # Create tab widget for C, S, DRcor
+    # Create tab widget for S+C, C, S, DRcor
     page_tabs = QTabWidget()
     page_tabs.setVisible(True)
     
@@ -226,8 +232,8 @@ def create_drc_preview_ui(parent):
     tab_cells = []
     energy_preview_cells = []  # Keep for backward compatibility
     
-    # Create tabs for C, S, DRcor
-    channel_names = ["C", "S", "DRcor"]
+    # Create tabs for S+C, C, S, DRcor
+    channel_names = DRC_TAB_NAMES
     for channel_idx, channel_name in enumerate(channel_names):
         # Create tab widget
         tab_widget = QWidget()

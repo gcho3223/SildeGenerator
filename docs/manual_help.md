@@ -1,5 +1,5 @@
 # About Slide Maker for Keynote  
-version 2.1.1  
+version 2.2.1  
 
 # Bug Report  
 카카오톡으로 문의(스크린샷 + status 복붙해서 보내주면 좋음)  
@@ -7,6 +7,10 @@ version 2.1.1
 ### Created by Guk Cho  
 
 # Log  
+### version 2.2.1
+- DRC mode에서 활성화된 채널만 preview에 나타나도록 업데이트
+
+
 ### version 2.2
 - DRC mode에서 S/C overlay plot 삽입 기능 추가
 

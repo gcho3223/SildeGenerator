@@ -95,9 +95,12 @@ def insert_pdfs_into_slide_drc(output_file, base_dir, programs, channels, energi
             # Get energies for this channel
             # If energies is a dict, use channel-specific energies; otherwise use the same list for all channels
             if isinstance(energies, dict):
-                # Map channel name to tab index: "C" -> 0, "S" -> 1, "DRcor" -> 2
-                # But channel might be "S_LCATTcor" or "DRcor_LCATTcor", so we need to match the base name
-                channel_base = channel.split("_")[0]  # "C", "S", or "DRcor"
+                # Map channel name to tab key: "C_S_overlay_*" -> "C_S_overlay",
+                # "S_*" -> "S", "DRcor_*" -> "DRcor", "C" -> "C"
+                if channel.startswith("C_S_overlay"):
+                    channel_base = "C_S_overlay"
+                else:
+                    channel_base = channel.split("_")[0]
                 channel_energies = energies.get(channel_base, [])
                 if not channel_energies:
                     # Fallback: try to find any matching key

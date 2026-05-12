@@ -16,16 +16,15 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtGui import QFont
 
-# Add parent directory to path for imports
+# Add parent directory (v2.2/) to sys.path so absolute imports like
+# "from Config.config_cpv import ..." work both when running as a script and
+# when frozen by py2app (in which case gui.py is the entry point, NOT part of
+# the GUI package, so "from ..Config" would be invalid).
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import configurations
-try:
-    from Config.config_cpv import cpv_config
-    from Config.config_drc import drc_config
-except ImportError:
-    from ..Config.config_cpv import cpv_config
-    from ..Config.config_drc import drc_config
+# Import configurations (absolute imports only)
+from Config.config_cpv import cpv_config
+from Config.config_drc import drc_config
 
 # Import modularized components
 from GUI.common import create_directory_ui, create_status_ui, create_action_buttons
@@ -157,7 +156,7 @@ class KeynoteSlideGeneratorGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         # Window settings
-        self.setWindowTitle("Silde Maker for Keynote v2.2")
+        self.setWindowTitle("Silde Maker for Keynote v2.2.1")
         self.setGeometry(100, 100, 750, 900)
         self.setMinimumSize(750, 900)
         
@@ -418,6 +417,15 @@ class KeynoteSlideGeneratorGUI(QMainWindow):
         self.preview_group, self.energy_preview_cells, self.drc_page_tabs, self.drc_tab_grids, self.drc_tab_cells = create_drc_preview_ui(self)
         left_side_layout.addWidget(self.preview_group)
         self.preview_group.setVisible(False)
+
+        # Connect DRC channel widgets to update preview tab visibility
+        # (S+C, C: checkbox state; S, DRcor: combobox selection)
+        self.sc_overlay_check.stateChanged.connect(self.update_drc_tab_visibility)
+        self.c_check.stateChanged.connect(self.update_drc_tab_visibility)
+        self.s_combo.currentTextChanged.connect(self.update_drc_tab_visibility)
+        self.drcor_combo.currentTextChanged.connect(self.update_drc_tab_visibility)
+        # Apply initial visibility based on default selections
+        self.update_drc_tab_visibility()
         
         # Loop-defined Preview Section
         (self.loopDefined_preview_group, self.loopDefined_preview_cells, 
@@ -572,6 +580,7 @@ class KeynoteSlideGeneratorGUI(QMainWindow):
             self.header_label.setVisible(False)
             self.select_all_steps_check.setVisible(False)
             update_energy_preview(self)
+            self.update_drc_tab_visibility()
         elif self.loopDefined_radio.isChecked():  # Loop-defined mode
             self.mode = "loopDefined"
             self.systematic_check.setChecked(False)
@@ -842,7 +851,40 @@ class KeynoteSlideGeneratorGUI(QMainWindow):
     def update_energy_preview(self):
         """Update energy preview - delegates to gui_drc module"""
         update_energy_preview(self)
-    
+
+    def update_drc_tab_visibility(self):
+        """Show/hide DRC preview tabs based on channel selections.
+
+        Visibility rules:
+            - S+C tab  : visible when sc_overlay_check is checked
+            - C tab    : visible when c_check is checked
+            - S tab    : visible when s_combo selection is not "None"
+            - DRcor tab: visible when drcor_combo selection is not "None"
+        """
+        if not hasattr(self, 'drc_page_tabs') or self.drc_page_tabs is None:
+            return
+
+        from GUI.gui_drc import DRC_TAB_NAMES
+
+        visibility = [
+            self.sc_overlay_check.isChecked() if hasattr(self, 'sc_overlay_check') else False,  # S+C
+            self.c_check.isChecked() if hasattr(self, 'c_check') else True,                     # C
+            (self.s_combo.currentText() != "None") if hasattr(self, 's_combo') else True,       # S
+            (self.drcor_combo.currentText() != "None") if hasattr(self, 'drcor_combo') else True,  # DRcor
+        ]
+
+        for idx, visible in enumerate(visibility):
+            if idx < self.drc_page_tabs.count():
+                self.drc_page_tabs.setTabVisible(idx, visible)
+
+        # If the currently active tab is hidden, switch to the first visible one.
+        current_idx = self.drc_page_tabs.currentIndex()
+        if 0 <= current_idx < len(visibility) and not visibility[current_idx]:
+            for idx, visible in enumerate(visibility):
+                if visible and idx < self.drc_page_tabs.count():
+                    self.drc_page_tabs.setCurrentIndex(idx)
+                    break
+
     def on_loopDefined_arrangement_changed(self, arrangement):
         """Handle arrangement change in Loop-defined mode"""
         from GUI.gui_loopDefined import update_loopDefined_row_inputs
@@ -1751,10 +1793,11 @@ class KeynoteSlideGeneratorGUI(QMainWindow):
             
             # Get selected energy points from preview grid (DRC) or checkboxes (CPV/Loop-defined)
             if mode == "drc":
-                # Read from each tab (C, S, DRcor) - each tab has its own energy order
+                # Read from each tab (S+C, C, S, DRcor) - each tab has its own energy order
                 if hasattr(self, 'drc_page_tabs') and hasattr(self, 'drc_tab_cells') and hasattr(self, 'drc_tab_grids'):
-                    # Map tab index to channel name: 0=C, 1=S, 2=DRcor
-                    channel_names = ["C", "S", "DRcor"]
+                    # Map tab index to energy-dict key: 0=C_S_overlay, 1=C, 2=S, 3=DRcor
+                    from GUI.gui_drc import DRC_TAB_KEYS
+                    channel_names = DRC_TAB_KEYS
                     selected_energies = {}  # Dictionary: channel_name -> list of energies
                     
                     for tab_idx, tab_cells in enumerate(self.drc_tab_cells):
